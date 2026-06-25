@@ -1,0 +1,47 @@
+#!/bin/bash
+REF="PRD_resources/GRCh38.primary_assembly.genome.fa"
+RUN1="PRD_ONT/neurons/outputs/trim/run1"
+RUN2="PRD_ONT/neurons/outputs/trim/run2"
+OUTDIR="PRD_ONT/neurons/outputs/align"
+mkdir -p "$OUTDIR"
+
+SAMPLES=(ctrl_r1 ctrl_r2 ctrl_r3 ctrl_r4 ctrl_r5 kd_r1 kd_r2 kd_r3 kd_r4 kd_r5)
+echo "RUN1: $RUN1"
+echo "RUN2: $RUN2"
+echo "OUTDIR: $OUTDIR"
+
+for SAMPLE in "${SAMPLES[@]}"; do
+    F1=$(ls "$RUN1"/*_${SAMPLE}_trimmed.fastq 2>/dev/null)
+    F2=$(ls "$RUN2"/*_${SAMPLE}_trimmed.fastq 2>/dev/null)
+    MERGED="$OUTDIR/${SAMPLE}_merged.fastq"
+    echo "Merging $SAMPLE..."
+    if [[ -f "$F1" && -f "$F2" ]]; then
+        cat "$F1" "$F2" > "$MERGED"
+        echo "Merged: $MERGED"
+    elif [[ -f "$F1" ]]; then
+        cp "$F1" "$MERGED"
+        echo "Only run1 exists — copied $F1 to $MERGED"
+    elif [[ -f "$F2" ]]; then
+        cp "$F2" "$MERGED"
+        echo "Only run2 exists — copied $F2 to $MERGED"
+    else
+        echo "Skipping $SAMPLE — no trimmed FASTQs found in either run."
+        continue
+    fi
+
+for SAMPLE in "${SAMPLES[@]}"; do
+    MERGED="$OUTDIR/${SAMPLE}_merged.fastq"
+    BAM="$OUTDIR/${SAMPLE}.sorted.bam"
+    if [[ -s "$MERGED" ]]; then
+        echo "Aligning $SAMPLE..."
+        SAM="$OUTDIR/${SAMPLE}.sam"
+        minimap2 -ax splice -t 8 "$REF" "$MERGED" > "$SAM"
+        samtools view -bS "$SAM" | samtools sort -o "$BAM"
+        samtools index "$BAM"
+        rm "$SAM"
+        echo "Aligned: $BAM"
+    else
+        echo "Skipping $SAMPLE — merged FASTQ is empty or missing."
+    fi
+done
+done
