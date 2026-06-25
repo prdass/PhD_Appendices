@@ -1,0 +1,12 @@
+library(bambu)
+library(devtools)
+
+annotations <- prepareAnnotations(PRD_resources/gencode.v38.annotation.gtf)
+saveRDS(annotations, "PRD_ONT/outputs/bambu/annotations.rds" )
+se.multiSample <- bambu(
+  reads = c("/projects/health_sciences/bms/biochemistry/hughes_lab/PRD_ONT/outputs/align/merged/primary/ctrl_r1_merged.sorted.bam","/projects/health_sciences/bms/biochemistry/hughes_lab/PRD_ONT/outputs/align/merged/primary/ctrl_r2_merged.sorted.bam","/projects/health_sciences/bms/biochemistry/hughes_lab/PRD_ONT/outputs/align/merged/primary/ctrl_r3_merged.sorted.bam","/projects/health_sciences/bms/biochemistry/hughes_lab/PRD_ONT/outputs/align/merged/primary/ctrl_r4_merged.sorted.bam","/projects/health_sciences/bms/biochemistry/hughes_lab/PRD_ONT/outputs/align/merged/primary/ctrl_r5_merged.sorted.bam","/projects/health_sciences/bms/biochemistry/hughes_lab/PRD_ONT/outputs/align/merged/primary/kd_r1_merged.sorted.bam","/projects/health_sciences/bms/biochemistry/hughes_lab/PRD_ONT/outputs/align/merged/primary/kd_r2_merged.sorted.bam","/projects/health_sciences/bms/biochemistry/hughes_lab/PRD_ONT/outputs/align/merged/primary/kd_r3_merged.sorted.bam","/projects/health_sciences/bms/biochemistry/hughes_lab/PRD_ONT/outputs/align/merged/primary/kd_r4_merged.sorted.bam","/projects/health_sciences/bms/biochemistry/hughes_lab/PRD_ONT/outputs/align/merged/primary/kd_r5_merged.sorted.bam"
+  ),
+  annotations = "PRD_ONT/outputs/bambu/annotations.rds",
+  genome = "PRD_resources/GRCh38.clean.fa"
+)
+writeBambuOutput(se.multiSample, path = "PRD_ONT/outputs/bambu/")
