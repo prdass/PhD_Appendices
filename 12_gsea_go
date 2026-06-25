@@ -1,0 +1,77 @@
+library(clusterProfiler)
+library(org.Hs.eg.db)
+library(DOSE)
+library(ggplot2)
+library(dplyr)
+library(stringr)
+outdir <- "transfer_PRD/thesis/"
+
+dir.create(outdir, recursive = TRUE, showWarnings = FALSE)
+
+res <- read.csv(
+  "PRD_ONT/outputs/counts/de/deseq2_results.csv",
+  check.names = FALSE
+)
+colnames(res)[1] <- "gene_id"
+res$gene_id <- sub("\\..*", "", res$gene_id)
+
+cat("Number of genes loaded:", nrow(res), "\n")
+cat("Example gene IDs:\n")
+print(head(res$gene_id))
+
+res <- res %>%
+  filter(!is.na(log2FoldChange))
+
+cat("Number of genes after filtering:", nrow(res), "\n")
+res <- res %>%
+  filter(!is.na(stat))
+ranks <- res$stat
+names(ranks) <- res$gene_id
+
+ranks <- ranks[!duplicated(names(ranks))]
+
+ranks <- sort(ranks, decreasing = TRUE)
+ranked_entrez <- bitr(
+  unique(names(ranks)),
+  fromType = "ENSEMBL",
+  toType = "ENTREZID",
+  OrgDb = org.Hs.eg.db
+) %>%
+  distinct(ENSEMBL, .keep_all = TRUE) %>%
+  distinct(ENTREZID, .keep_all = TRUE)
+ranks_named <- ranks[names(ranks) %in% ranked_entrez$ENSEMBL]
+
+ranked_entrez <- ranked_entrez[match(names(ranks_named), ranked_entrez$ENSEMBL), ]
+names(ranks_named) <- ranked_entrez$ENTREZID
+ranks_named <- sort(ranks_named, decreasing = TRUE)
+cat("Number of ranked genes after mapping:", length(ranks_named), "\n")
+
+gsea_res <- gseGO(
+  geneList      = ranks_named,
+  OrgDb         = org.Hs.eg.db,
+  ont           = "BP",
+  keyType       = "ENTREZID",
+  minGSSize     = 10,
+  maxGSSize     = 800,
+  pvalueCutoff  = 0.1,
+  pAdjustMethod = "BH",
+  verbose       = FALSE
+)
+
+gsea_df <- as.data.frame(gsea_res)
+write.csv(
+  gsea_df,
+  file.path(outdir, "GSEA_GO_BP_full.csv"),
+  row.names = FALSE
+)
+
+gsea_keep <- c(
+  "Cytoplasmic translation",
+  "Epigenetic regulation of gene expression",
+  "Chromatin organization",
+  "Brain development",
+  "Neuron projection morphogenesis",
+  "Wnt signaling pathway",
+  "Regulation of Wnt signaling pathway",
+  "Cell junction organization"
+)
