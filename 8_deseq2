@@ -1,0 +1,27 @@
+library(DESeq2)
+
+count_data <- read.table("PRD_ONT/outputs/counts/de/featureCounts_output.txt",
+                         header = TRUE,
+                         sep = "\t",
+                         comment.char = "#",
+                         row.names = 1,
+                         check.names = FALSE)
+count_data <- count_data[, 6:ncol(count_data)]
+colnames(count_data) <- gsub(".*/|_merged\\.sorted\\.bam", "", colnames(count_data))
+print("Cleaned column names:")
+print(colnames(count_data))
+condition <- factor(c("control", "control", "control", "control", "control",
+                      "knockdown", "knockdown", "knockdown", "knockdown", "knockdown"))
+col_data <- data.frame(row.names = colnames(count_data), condition)
+
+
+dds <- DESeqDataSetFromMatrix(countData = count_data,
+                              colData = col_data,
+                              design = ~ condition)
+dds <- dds[rowSums(counts(dds)) > 1, ]
+dds <- DESeq(dds)
+res <- results(dds)
+write.csv(as.data.frame(res), file = "PRD_ONT/outputs/counts/de/deseq2_results.csv")
+
+saveRDS(dds, file = "PRD_ONT/outputs/counts/de/dds.rds")
+saveRDS(res, file = "PRD_ONT/outputs/counts/de/res.rds")
