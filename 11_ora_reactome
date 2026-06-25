@@ -1,0 +1,85 @@
+library(ReactomePA)
+library(clusterProfiler)
+library(org.Hs.eg.db)
+library(DOSE)
+library(dplyr)
+library(ggplot2)
+library(stringr)
+library(grid)
+library(gtable)
+outdir <- "transfer_PRD/thesis"
+dir.create(outdir, recursive = TRUE, showWarnings = FALSE)
+
+res <- readRDS("PRD_ONT/outputs/counts/de/res.rds")
+res_df <- as.data.frame(res)
+res_df$gene <- rownames(res_df)
+res_df$gene <- sub("\\..*", "", res_df$gene)
+res_df <- res_df %>%
+  filter(!is.na(log2FoldChange), !is.na(padj))
+up_genes <- res_df %>%
+  filter(padj < 0.05, log2FoldChange > 1) %>%
+  pull(gene) %>%
+  unique()
+
+down_genes <- res_df %>%
+  filter(padj < 0.05, log2FoldChange < -1) %>%
+  pull(gene) %>%
+  unique()
+
+cat("Number of upregulated genes:", length(up_genes), "\n")
+cat("Number of downregulated genes:", length(down_genes), "\n")
+up_conv <- bitr(
+  up_genes,
+  fromType = "ENSEMBL",
+  toType = "ENTREZID",
+  OrgDb = org.Hs.eg.db
+) %>%
+  distinct(ENSEMBL, .keep_all = TRUE)
+
+down_conv <- bitr(
+  down_genes,
+  fromType = "ENSEMBL",
+  toType = "ENTREZID",
+  OrgDb = org.Hs.eg.db
+) %>%
+  distinct(ENSEMBL, .keep_all = TRUE)
+
+up_entrez <- unique(up_conv$ENTREZID)
+down_entrez <- unique(down_conv$ENTREZID)
+
+cat("Mapped upregulated Entrez IDs:", length(up_entrez), "\n")
+cat("Mapped downregulated Entrez IDs:", length(down_entrez), "\n")
+
+react_up <- enrichPathway(
+  gene          = up_entrez,
+  organism      = "human",
+  pvalueCutoff  = 0.05,
+  pAdjustMethod = "BH",
+  qvalueCutoff  = 0.05,
+  readable      = TRUE
+)
+
+react_down <- enrichPathway(
+  gene          = down_entrez,
+  organism      = "human",
+  pvalueCutoff  = 0.05,
+  pAdjustMethod = "BH",
+  qvalueCutoff  = 0.05,
+  readable      = TRUE
+)
+
+react_up_df <- as.data.frame(react_up)
+react_down_df <- as.data.frame(react_down)
+
+write.csv(
+  react_up_df,
+  file.path(outdir, "Reactome_upregulated_full.csv"),
+  row.names = FALSE
+)
+
+write.csv(
+  react_down_df,
+  file.path(outdir, "Reactome_downregulated_full.csv"),
+  row.names = FALSE
+)
+
