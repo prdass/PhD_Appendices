@@ -1,0 +1,12 @@
+#!/bin/bash
+GTF_FILE=/home/daspr521/PRD_resources/gencode.v38.annotation.gtf
+BAM_DIR=PRD_ONT/outputs/align/primary/
+OUT_FILE=PRD_ONT/outputs/counts/featurecounts.txt
+
+echo "Running featureCounts..."
+featureCounts -T 16 -L \
+              -a "$GTF_FILE" \
+              -o "$OUT_FILE" \
+              "$BAM_DIR"/*.bam
+
+
