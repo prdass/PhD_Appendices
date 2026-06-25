@@ -1,0 +1,17 @@
+#!/bin/bash 
+
+dorado basecaller \
+  /home/daspr521/PRD_resources/dna_r10.4.1_e8.2_400bps_sup@v5.0.0 \
+  PRD_ONT/raw_i3n_pod5/PRD_251001_i3N_KD/DANCR_KD_i3N/20251001_1603_P2S-00650-A_PBC54438_30ce048c/pod5 \
+  --sample-sheet PRD_ONT/sampleinfo/i3n_sample_sheet.csv \
+  --kit-name SQK-PCB114-24 \
+  --no-trim \
+  > PRD_ONT/neurons/outputs/basecall/basecall_run1.bam
+
+dorado basecaller \
+  /home/daspr521/PRD_resources/dna_r10.4.1_e8.2_400bps_sup@v5.0.0 \
+  PRD_ONT/raw_i3n_pod5/PRD_251002_i3N_KD_FC2/i3N_DANCR_KD_FC2/20251002_1405_P2S-00650-B_PBC57304_037d8ec9/pod5 \
+  --sample-sheet PRD_ONT/sampleinfo/i3n_sample_sheet.csv \
+  --kit-name SQK-PCB114-24 \
+  --no-trim \
+  > PRD_ONT/neurons/outputs/basecall/basecall_run2.bam
