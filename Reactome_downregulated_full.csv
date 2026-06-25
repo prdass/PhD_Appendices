@@ -1,0 +1,3 @@
+"ID","Description","GeneRatio","BgRatio","pvalue","p.adjust","qvalue","geneID","Count"
+"R-HSA-9832991","Formation of the posterior neural plate","2/19","10/11009",0.000125951656602464,0.00707399435462641,0.00598942313778438,"GBX2/SOX1",2
+"R-HSA-9823739","Formation of the anterior neural plate","2/19","11/11009",0.000153782485970139,0.00707399435462641,0.00598942313778438,"GBX2/SOX1",2
