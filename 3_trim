@@ -1,0 +1,23 @@
+#!/bin/bash
+SEQUENCING_KIT=SQK-PCB114-24
+
+INPUT_DIRS=("PRD_ONT/neurons/outputs/demux/run1" "PRD_ONT/neurons/outputs/demux/run2")
+OUTPUT_DIRS=("PRD_ONT/neurons/outputs/trim/run1" "PRD_ONT/neurons/outputs/trim/run2")
+
+for i in "${!INPUT_DIRS[@]}"; do
+    INPUT_DIR="${INPUT_DIRS[$i]}"
+    OUTPUT_DIR="${OUTPUT_DIRS[$i]}"
+    mkdir -p "$OUTPUT_DIR"
+    for FASTQ in "$INPUT_DIR"/*.fastq; do
+        BASENAME=$(basename "$FASTQ" .fastq)
+        echo "Trimming $FASTQ -> $OUTPUT_DIR/${BASENAME}_trimmed.fastq"
+       dorado trim \
+            --sequencing-kit "$SEQUENCING_KIT" \
+            --emit-fastq \
+            "$FASTQ" \
+            > "$OUTPUT_DIR/${BASENAME}_trimmed.fastq" 2> "$OUTPUT_DIR/${BASENAME}_trim.log"
+    done
+done
+echo "All files processed."
+
+
