@@ -1,0 +1,24 @@
+INPUT_DIRS=("PRD_ONT/outputs/trim/run1" "PRD_ONT/outputs/trim/run2")
+OUTPUT_DIRS=("PRD_ONT/outputs/filter/run1" "PRD_ONT/outputs/filter/run2")
+mkdir -p PRD_ONT/outputs/filter/logs
+
+for i in "${!INPUT_DIRS[@]}"; do
+    IN_DIR="${INPUT_DIRS[$i]}"
+    OUT_DIR="${OUTPUT_DIRS[$i]}"
+    echo "Filtering files in: $IN_DIR"
+    mkdir -p "$OUT_DIR" "$OUT_DIR/nanostat" "$OUT_DIR/nanoplot"
+    for IN_FASTQ in "$IN_DIR"/*_trimmed.fastq; do
+        if [[ -f "$IN_FASTQ" ]]; then
+            BASE=$(basename "$IN_FASTQ" .fastq)
+            OUT_FASTQ="$OUT_DIR/${BASE}_filtered.fastq"
+            echo "Running NanoFilt on $IN_FASTQ"
+            NanoFilt -q 10 < "$IN_FASTQ" > "$OUT_FASTQ"
+            echo "Running NanoStat on $OUT_FASTQ"
+            NanoStat --fastq "$OUT_FASTQ" --outdir "$OUT_DIR/nanostat" --name "${BASE}_filtered"
+            echo "Running NanoPlot on $OUT_FASTQ"
+            NanoPlot --fastq "$OUT_FASTQ" --outdir "$OUT_DIR/nanoplot" --tsv_stats
+        else
+            echo "Warning: No FASTQ file found: $IN_FASTQ"
+        fi
+    done
+done
