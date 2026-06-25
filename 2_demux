@@ -1,0 +1,4 @@
+#!/bin/bash 
+dorado demux --output-dir PRD_ONT/neurons/outputs/demux/run1 --sample-sheet PRD_ONT/sampleinfo/i3n_sample_sheet.csv --kit-name SQK-PCB114-24  --emit-fastq --emit-summary  PRD_ONT/neurons/outputs/basecall/basecall_run1.bam
+
+dorado demux --output-dir PRD_ONT/neurons/outputs/demux/run2 --sample-sheet PRD_ONT/sampleinfo/i3n_sample_sheet.csv --kit-name SQK-PCB114-24  --emit-fastq --emit-summary PRD_ONT/neurons/outputs/basecall/basecall_run2.bam
